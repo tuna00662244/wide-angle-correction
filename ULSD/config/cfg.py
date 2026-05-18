@@ -27,7 +27,15 @@ def parse():
             opts_list.append(key)
             opts_list.append(value)
 
+    #yaml_file = os.path.join(opts.config_path, opts.config_file)
+
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    if not os.path.isabs(opts.config_path):
+        opts.config_path = os.path.join(BASE_DIR, opts.config_path)
+
     yaml_file = os.path.join(opts.config_path, opts.config_file)
+
     cfg = CfgNode.load_cfg(open(yaml_file))
     cfg.merge_from_list(opts_list)
 
