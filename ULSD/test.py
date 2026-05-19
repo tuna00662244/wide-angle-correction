@@ -1,6 +1,9 @@
 import os
 import numpy as np
 import cv2
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import torch
 from tqdm import tqdm
@@ -12,6 +15,30 @@ from config.cfg import parse
 from metric.eval_mAPJ import eval_mAPJ
 from metric.eval_sAP import eval_sAP
 import util.bezier as bez
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def resolve_ulsd_paths(cfg):
+    path_keys = [
+        'raw_dataset_path',
+        'train_dataset_path',
+        'test_dataset_path',
+        'groundtruth_path',
+        'output_path',
+        'figure_path',
+        'log_path',
+        'model_path',
+    ]
+
+    cfg.defrost()
+    for key in path_keys:
+        path = cfg[key]
+        if path and not os.path.isabs(path):
+            cfg[key] = os.path.join(BASE_DIR, path)
+    cfg.freeze()
+    return cfg
 
 
 def save_lines(image, lines, filename, cfg, plot=False, fast=False):
@@ -80,7 +107,7 @@ def test(model, loader, cfg, device):
             if cfg.save_image:
                 image = cv2.imread(src_filename)
                 line_pred = line_pred[line_score > cfg.score_thresh]
-                save_lines(image, line_pred, image_filename, cfg)
+                save_lines(image, line_pred, image_filename, cfg, fast=True)
 
             index += 1
 
@@ -100,6 +127,7 @@ def test(model, loader, cfg, device):
 if __name__ == '__main__':
     # Parameter
     cfg = parse()
+    cfg = resolve_ulsd_paths(cfg)
     os.makedirs(cfg.output_path, exist_ok=True)
 
     # Use GPU or CPU
