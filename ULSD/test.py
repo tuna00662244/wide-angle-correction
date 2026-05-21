@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import cv2
 import matplotlib
@@ -9,36 +10,18 @@ import torch
 from tqdm import tqdm
 import time
 import torch.utils.data as Data
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 from network.ulsd import ULSD
 from network.dataset import Dataset
 from config.cfg import parse
 from metric.eval_mAPJ import eval_mAPJ
 from metric.eval_sAP import eval_sAP
 import util.bezier as bez
-
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-
-def resolve_ulsd_paths(cfg):
-    path_keys = [
-        'raw_dataset_path',
-        'train_dataset_path',
-        'test_dataset_path',
-        'groundtruth_path',
-        'output_path',
-        'figure_path',
-        'log_path',
-        'model_path',
-    ]
-
-    cfg.defrost()
-    for key in path_keys:
-        path = cfg[key]
-        if path and not os.path.isabs(path):
-            cfg[key] = os.path.join(BASE_DIR, path)
-    cfg.freeze()
-    return cfg
 
 
 def save_lines(image, lines, filename, cfg, plot=False, fast=False):
@@ -97,7 +80,7 @@ def test(model, loader, cfg, device):
             joff = joffs[i].numpy()
             line_pred = line_preds[i].numpy()
             line_score = line_scores[i].numpy()
-            src_filename = loader.dataset.file_list[index].split()[0]
+            src_filename = loader.dataset.file_list[index]
             filename = os.path.split(src_filename)[1]
             image_filename = os.path.join(cfg.output_path, filename[:-4] + '.png')
             npz_filename = os.path.join(cfg.output_path, filename[:-4] + '.pnz')
@@ -127,7 +110,6 @@ def test(model, loader, cfg, device):
 if __name__ == '__main__':
     # Parameter
     cfg = parse()
-    cfg = resolve_ulsd_paths(cfg)
     os.makedirs(cfg.output_path, exist_ok=True)
 
     # Use GPU or CPU
@@ -147,6 +129,8 @@ if __name__ == '__main__':
 
     # Load dataset
     dataset = Dataset(cfg.test_dataset_path, cfg, with_label=False)
+    if len(dataset) == 0:
+        raise FileNotFoundError(f"No .png or .jpg images found in {cfg.test_dataset_path}")
     loader = Data.DataLoader(dataset=dataset, batch_size=cfg.test_batch_size,
                                  num_workers=cfg.num_workers, shuffle=False)
 

@@ -9,6 +9,23 @@ import torchvision.transforms.transforms as tfs
 from torch.utils.data.dataloader import default_collate
 
 
+IMAGE_EXTS = {'.jpg', '.jpeg', '.png'}
+IMAGE_PATTERNS = ['*.png', '*.jpg', '*.jpeg', '*.PNG', '*.JPG', '*.JPEG']
+
+
+def image_files(path):
+    if os.path.isfile(path):
+        if os.path.splitext(path)[1].lower() in IMAGE_EXTS:
+            return [path]
+        return []
+
+    files = []
+    for pattern in IMAGE_PATTERNS:
+        files.extend(glob.glob(os.path.join(path, pattern)))
+    files.sort()
+    return files
+
+
 class DeNormalize(object):
     def __init__(self, mean, std):
         self.mean = mean
@@ -24,17 +41,14 @@ class DeNormalize(object):
 class Dataset(Data.Dataset):
     def __init__(self, path, cfg, with_label=True, augment=False):
         if with_label:
-            image_file_list = glob.glob(os.path.join(path, '*.png')) + \
-                              glob.glob(os.path.join(path, '*.jpg'))
+            image_file_list = image_files(path)
             label_file_list = glob.glob(os.path.join(path, '*.npz'))
             image_file_list.sort()
             label_file_list.sort()
             self.file_list = [image_file + ' ' + label_file
                               for image_file, label_file in zip(image_file_list, label_file_list)]
         else:
-            image_file_list = glob.glob(os.path.join(path, '*.png')) + \
-                              glob.glob(os.path.join(path, '*.jpg'))
-            image_file_list.sort()
+            image_file_list = image_files(path)
             self.file_list = [image_file for image_file in image_file_list]
 
         self.with_label = with_label
@@ -57,7 +71,7 @@ class Dataset(Data.Dataset):
             image, map, meta = self.transforms(image, label)
             return image, map, meta
         else:
-            image_file = self.file_list[index].split()[0]
+            image_file = self.file_list[index]
             image = Image.open(image_file).convert('RGB')
             image = image.resize(self.image_size, Image.BILINEAR)
             image = self.transforms(image)
