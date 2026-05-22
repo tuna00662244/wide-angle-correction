@@ -4,7 +4,7 @@
         "n_phi": 128
     },
     "loss_weights": {
-        "w_l": 25,
+        "w_l": 100,
         "w_c": 1,
         "w_s": 12,
         "w_dvc": 1
