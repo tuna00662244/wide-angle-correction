@@ -1,0 +1,8 @@
+{
+    "image_path": "..\\..\\dataset\\my_image\\room.jpg",
+    "fov_deg": 108.32469409144342,
+    "focal_length_mm": 13.0,
+    "sensor_width_mm": 36.0,
+    "lines": [ ],
+    "regions": []
+}

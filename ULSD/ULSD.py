@@ -31,7 +31,7 @@ from util import bezier as bez
 
 LINE_SAMPLE_POINTS = 128
 DEFAULT_IMAGE = BASE_DIR / "dataset" / "my_image" / "room.jpg"
-DEFAULT_OUTPUT_DIR = BASE_DIR / "MDCoW" / "data"
+DEFAULT_OUTPUT_DIR = BASE_DIR / "MaDCoW" / "data"
 DEFAULT_SENSOR_WIDTH_MM = 36.0
 
 
